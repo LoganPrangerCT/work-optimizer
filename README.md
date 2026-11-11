@@ -33,6 +33,8 @@ Right-click a task for priority and hide controls. Hidden tasks return to the qu
 
 Need help from your GPT? Copy the [setup prompt](docs/setup-prompt.md), and give
 it access to this project folder if your assistant supports local files.
+For AI setup, follow [Connect your accounts](docs/connections.md): it explains
+exactly what to connect, where to find each value, and how to test each source.
 
 ## Where your work is saved
 
@@ -45,6 +47,10 @@ Your optional `config/settings.json` is also private. Git ignores both it and
 `data/`. Keep a backup before replacing or upgrading a working copy.
 
 ## Optional: connect AI refresh
+
+**Use the [step-by-step connection guide](docs/connections.md)** if this is your
+first setup. It includes copyable prompts for each connection. You do not need
+GitHub, an API key, or a separate Blackboard plugin to use manual tasks.
 
 This requires your own Codex access, an available model, and any source accounts
 you choose to connect. Usage can consume your plan allowance or incur provider

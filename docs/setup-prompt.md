@@ -19,6 +19,12 @@ you cannot access my files or run commands, give me one small step at a time
 and wait for the result instead of claiming you performed checks.
 
 Once manual tasks work, ask whether I want optional AI refresh. If I do:
+- Read docs/connections.md. Ask which sources I actually want: Blackboard,
+  Gmail, Outlook, or any combination. Do not make me connect sources I skip.
+- Ask only for details you cannot discover: my school name/public Blackboard
+  URL, desired mail providers, and operating system if unknown. Find public
+  school IT instructions yourself when browsing is available; cite the page.
+  Explain precisely where to click and where each requested value is found.
 - Follow the optional setup in README.md and official Codex CLI documentation.
 - Check for a working native Codex executable and a model my account can use.
 - Build the integration using npm run setup:mcp.
@@ -32,9 +38,17 @@ Once manual tasks work, ask whether I want optional AI refresh. If I do:
 - Check mail tools in the actual CLI environment before promising email
   access. Only read sources; never send, mark read, delete, or modify mail
   or coursework.
+- Guide me through the Codex /plugins browser for Gmail or Outlook Email,
+  let me complete account selection and authorization, then start a fresh CLI
+  session and perform a small read-only test for each provider. Do not infer
+  a connection from a plugin merely being installed in a different app.
 - Explain that AI refresh sends source content to my configured AI provider.
 
 Do not delete my data, replace existing task files, expose the app publicly,
 publish a repository, or change unrelated code. Back up data before repairs.
 Finish by telling me how to start/stop the app and what you actually verified.
+Use a checklist showing working, skipped, or blocked for Node/dashboard, Codex
+login/model/executable, Blackboard, Gmail, and Outlook. For each blocked item,
+give the exact next action and where I can find what is needed. Do not expose
+my message contents or identifying details unnecessarily in your report.
 ```
