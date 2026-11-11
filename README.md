@@ -12,8 +12,9 @@ data; this is not a shared online task database.
 
 1. Install [Node.js](https://nodejs.org/) **22.13 or newer** (Node 24 is also
    supported). Close and reopen your terminal after installation.
-2. Download the project and extract it into a normal, writable folder. If you
-   downloaded a ZIP, extract it before continuing.
+2. [Download the project ZIP](https://github.com/LoganPrangerCT/work-optimizer/archive/refs/heads/main.zip)
+   and extract it into a normal, writable folder. On GitHub you can also choose
+   **Code → Download ZIP**. Extract it before continuing.
 3. On **Windows**, double-click **`start.cmd`**. Leave its terminal window open.
    On **macOS/Linux**, open a terminal in the extracted folder and run:
 
