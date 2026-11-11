@@ -23,17 +23,20 @@ Once manual tasks work, ask whether I want optional AI refresh. If I do:
   Gmail, Outlook, or any combination. Do not make me connect sources I skip.
 - Ask only for details you cannot discover: my school name/public Blackboard
   URL, desired mail providers, and operating system if unknown. Find public
-  school IT instructions yourself when browsing is available; cite the page.
+  school IT instructions yourself if I chose Blackboard and browsing is
+  available; cite the page.
   Explain precisely where to click and where each requested value is found.
 - Follow the optional setup in README.md and official Codex CLI documentation.
 - Check for a working native Codex executable and a model my account can use.
-- Build the integration using npm run setup:mcp.
+- Build the integration using npm run setup:mcp (the worker starts this
+  bundled server even if I only connect email).
 - Create config/settings.json from the example only if it does not exist;
-  preserve any existing settings. Ask for my school's public Blackboard and
+  preserve any existing settings. Save my model/executable for any AI setup.
+  Only if I chose Blackboard, ask for my school's public Blackboard and
   sign-in URLs if needed. Do not guess that the example URLs are real.
-- Check whether my school needs a different BB_TIME_ZONE. The integration
+- If I chose Blackboard, check whether my school needs a different BB_TIME_ZONE. The integration
   originated with Syracuse and may need changes for other schools.
-- Let me complete browser sign-in and MFA myself. Never ask for passwords,
+- For chosen providers, let me complete browser sign-in and MFA myself. Never ask for passwords,
   MFA codes, cookies, tokens, or credential files in this chat.
 - Check mail tools in the actual CLI environment before promising email
   access. Only read sources; never send, mark read, delete, or modify mail

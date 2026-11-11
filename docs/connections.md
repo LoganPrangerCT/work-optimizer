@@ -34,6 +34,10 @@ restrictions. Teams collection is not implemented.
 4. Exit the interactive session with Ctrl+C. Run `codex exec --help` and check
    that it lists `--json`, `--output-schema`, and `--ephemeral`.
 
+Save your model and executable using section 3, even if you only want email.
+For email-only setup, keep the example Blackboard URLs and skip Blackboard
+sign-in. Its source status may remain unchecked or blocked.
+
 **Windows executable check:** run `Get-Command codex -All` in PowerShell.
 The worker needs a native executable such as `codex.exe`, rather than just a
 `codex.cmd` or `codex.ps1` launcher. If the command shows only a launcher, use
@@ -84,7 +88,7 @@ Skip this section if you do not use Blackboard.
 **Only share public URLs with your assistant.** You type your password and MFA
 codes yourself in the browser. An email address or student ID is not a config field.
 
-## 3. Save settings and sign in to Blackboard
+## 3. Save settings, then sign in to Blackboard if wanted
 
 1. In the project folder run `npm run setup:mcp` (`npm.cmd run setup:mcp` if
    PowerShell blocks npm). This downloads dependencies and builds the included
@@ -99,14 +103,18 @@ codes yourself in the browser. An email address or student ID is not a config fi
    {
      "bbBaseUrl": "https://blackboard.example.edu",
      "bbSsoEntryUrl": "https://blackboard.example.edu",
+     "codexExecutable": "codex",
      "model": "MODEL_IDENTIFIER_FROM_YOUR_CODEX_CLI",
      "modelReasoningEffort": "medium",
      "allowedDomains": []
    }
    ```
 
-   This example is **not ready to run** until those URLs and the model are
-   replaced. Use double quotes and no trailing commas. Leave `allowedDomains`
+   Replace the model for every AI setup, and the URLs if using Blackboard.
+   Leave `codexExecutable` as `codex` if the native executable is on PATH.
+   Otherwise replace that value with the path found in section 1, for example
+   `"codexExecutable": "C:/path/to/codex.exe"`; use your actual path, not this
+   placeholder. Use double quotes and no trailing commas. Leave `allowedDomains`
    empty for ordinary setup; the configured Blackboard hostname is included
    automatically. Only add an additional Blackboard content hostname if the
    school's deployment actually needs it. Do not add `*` or unrelated sites.
@@ -122,7 +130,8 @@ codes yourself in the browser. An email address or student ID is not a config fi
    with the school's IANA time zone; your assistant can help find its name.
    These commands affect this launch only; repeat them for later launches or
    ask your assistant to help save a user environment setting.
-5. Stop and restart the app after editing settings. Use its **Blackboard
+5. Stop and restart the app after editing settings. If you chose Blackboard,
+   use its **Blackboard
    sign-in** control, then complete sign-in and MFA in the browser it opens.
    It uses a dedicated browser profile, so being signed in in another browser
    window does not guarantee that the integration is signed in.
