@@ -1,0 +1,225 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tasks",
+    "sources",
+    "ranking"
+  ],
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "externalId",
+          "actionKey",
+          "title",
+          "context",
+          "due",
+          "time",
+          "estimate",
+          "reason",
+          "excerpt",
+          "from",
+          "url",
+          "observedAt",
+          "sourceStatus",
+          "priority",
+          "submissionStatus",
+          "mailReadStatus"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "Blackboard",
+              "Gmail",
+              "Outlook"
+            ]
+          },
+          "externalId": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1
+          },
+          "actionKey": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1
+          },
+          "context": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "due": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "time": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "estimate": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10080
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1
+          },
+          "excerpt": {
+            "type": "string",
+            "maxLength": 3000,
+            "minLength": 1
+          },
+          "from": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "url": {
+            "type": "string"
+          },
+          "observedAt": {
+            "type": "string"
+          },
+          "sourceStatus": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed"
+            ]
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "submissionStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "not_submitted",
+              "in_progress",
+              "submitted",
+              "graded",
+              "unknown",
+              null
+            ]
+          },
+          "mailReadStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "read",
+              "unread",
+              "unknown",
+              null
+            ]
+          }
+        }
+      },
+      "maxItems": 500
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "codes"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "Blackboard",
+              "Gmail",
+              "Outlook"
+            ]
+          },
+          "codes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": [
+                "reviewed",
+                "scope_limited",
+                "pagination_incomplete",
+                "undated_work",
+                "submission_unknown",
+                "attachments_unread",
+                "messages_unavailable",
+                "login_required",
+                "profile_busy",
+                "unavailable",
+                "tool_unavailable",
+                "error",
+                "not_checked"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "order"
+      ],
+      "properties": {
+        "order": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "externalId",
+              "actionKey"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": [
+                  "Blackboard",
+                  "Gmail",
+                  "Outlook",
+                  "Manual"
+                ]
+              },
+              "externalId": {
+                "type": "string"
+              },
+              "actionKey": {
+                "type": "string"
+              }
+            }
+          },
+          "maxItems": 1000
+        }
+      }
+    }
+  }
+}

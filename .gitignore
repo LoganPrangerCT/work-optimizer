@@ -1,0 +1,96 @@
+# Build and dependencies
+node_modules/
+.research/
+artifacts/
+
+# Local databases and runtime state
+data/
+/tasks.json
+/old-tasks.json
+/tasks.json.tmp
+/old-tasks.json.tmp
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+
+# User configuration (keep the example committed)
+/config/settings.json
+/config.json
+.env
+.env.*
+!.env.example
+
+# Blackboard MCP cache, browser sessions and credentials
+blackboard-mcp/node_modules/
+blackboard-mcp/.blackboard-mcp/
+blackboard-mcp/chrome-profile/
+blackboard-mcp/**/Cookies
+blackboard-mcp/**/Cookies-journal
+blackboard-mcp/session-meta.json
+blackboard-mcp/*.storageState.json
+blackboard-mcp/*.state.json
+blackboard-mcp/browser-state.json
+blackboard-mcp/downloads/
+blackboard-mcp/test-results/
+blackboard-mcp/playwright-report/
+# Logs, backups, editors and private local files
+*.log
+logs/
+*.bak
+*.backup
+*.old
+*.tmp
+*.swp
+*~
+backups/
+backup/
+.envrc
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+*.local
+*.local.*
+private/
+.local/
+.codex/
+.claude/
+.agents/
+.aws/
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+Thumbs.db
+desktop.ini
+coverage/
+# Authentication files regardless of where a helper writes them
+.npmrc
+.pypirc
+.netrc
+auth.json
+.blackboard-mcp/
+chrome-profile/
+*.storageState.json
+*.state.json
+session-meta.json
+browser-state.json
+id_rsa
+id_ed25519
+*.keystore
+# Generated builds and local archives
+dist/
+build/
+release/
+*.zip
+*.7z
+
+# Hill climb working artifacts (temporary, not part of the product)
+/hillclimb/
+/.release-check/
+/TASKS.md

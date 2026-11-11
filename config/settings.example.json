@@ -1,0 +1,7 @@
+{
+  "bbBaseUrl": "https://blackboard.example.edu",
+  "bbSsoEntryUrl": "https://blackboard.example.edu",
+  "model": "gpt-6.1-terra",
+  "modelReasoningEffort": "medium",
+  "allowedDomains": []
+}

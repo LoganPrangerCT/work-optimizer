@@ -1,0 +1,20 @@
+{
+  "name": "work-optimizer",
+  "version": "1.0.0",
+  "description": "Local work triage dashboard with dark UI, SQLite persistence, and background AI refresh worker",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "dev": "node src/server.mjs",
+    "test": "node --test tests/*.test.mjs tests/*.test.js",
+    "tasks:check": "node scripts/check-tasks.mjs",
+    "setup:mcp": "npm --prefix blackboard-mcp ci --ignore-scripts && npm --prefix blackboard-mcp run build",
+    "build:mcp": "cd blackboard-mcp && npm run build",
+    "test:browser": "node scripts/browser-check.mjs"
+  }
+}

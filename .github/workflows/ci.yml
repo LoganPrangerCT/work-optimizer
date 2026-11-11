@@ -1,0 +1,28 @@
+name: Checks
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [22, 24]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: blackboard-mcp/package-lock.json
+      - run: npm test
+      - run: npm run setup:mcp
+      - run: npm --prefix blackboard-mcp run typecheck
+      - run: npm --prefix blackboard-mcp test
+      - run: npm --prefix blackboard-mcp audit --omit=dev

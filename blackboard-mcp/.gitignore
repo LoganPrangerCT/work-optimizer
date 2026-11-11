@@ -1,0 +1,30 @@
+node_modules/
+dist/
+demo/
+build/
+release/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment / local config
+.env
+.env.*
+!.env.example
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# NEVER commit session/browser/auth/cache data, even if it lands in the repo.
+.blackboard-mcp/
+chrome-profile/
+**/Cookies
+**/Cookies-journal
+session-meta.json
+*.storageState.json
+*.state.json
+browser-state.json
+downloads/
+discover-last.txt
