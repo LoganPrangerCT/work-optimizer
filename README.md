@@ -15,7 +15,8 @@ data; this is not a shared online task database.
 2. [Download the project ZIP](https://github.com/LoganPrangerCT/work-optimizer/archive/refs/heads/main.zip)
    and extract it into a normal, writable folder. On GitHub you can also choose
    **Code → Download ZIP**. Extract it before continuing.
-3. On **Windows**, double-click **`start.cmd`**. Leave its terminal window open.
+3. On **Windows**, double-click **`start.vbs`** (or **`start.cmd`**). It runs in
+   the background without keeping a terminal window open.
    On **macOS/Linux**, open a terminal in the extracted folder and run:
 
    ```sh
@@ -23,8 +24,9 @@ data; this is not a shared online task database.
    ```
 
 Open [http://127.0.0.1:4173](http://127.0.0.1:4173) if your browser does not open.
-You do **not** need to run `npm install` for the dashboard. Press **Ctrl+C** in
-the terminal when you want to stop it.
+You do **not** need to run `npm install` for the dashboard. The server automatically
+stops when you close your browser tab or when inactivity TTL expires (or press **Ctrl+C**
+if running in a terminal).
 
 Select **+ Add task** to create your first task. The initial example tasks are
 fictional and disappear when you add real work. Select a task to see its details

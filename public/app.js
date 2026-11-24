@@ -253,5 +253,54 @@ $('#calendar-today').onclick=()=>{const date=new Date(today()+'T12:00:00');month
 $('#prev-month').onclick=()=>{month--;if(month<0){month=11;year--;}render();};$('#next-month').onclick=()=>{month++;if(month>11){month=0;year++;}render();};
 for(const selector of ['#task-dialog','#status-dialog','#help-dialog','#add-dialog'])$(selector).addEventListener('click',event=>{if(event.target===$(selector)){const rect=event.target.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)event.target.close();}});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)load().catch(()=>{});});
-async function start(){try{const legacy=localStorage.getItem('work-optimizer-history-v1');if(legacy){await api('/api/migrate',JSON.parse(legacy));localStorage.removeItem('work-optimizer-history-v1');}}catch{notify('Legacy history could not be migrated; browser copy retained');}try{await load();await migrateHiddenTasks();}catch{setMarkup('#task-list','');schedulePoll();}}
+let clientId;
+try{
+  if(typeof sessionStorage!=='undefined'){
+    clientId=sessionStorage.getItem('work-optimizer-client-id');
+    if(!clientId){
+      clientId=(typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():('c_'+Math.random().toString(36).slice(2)+Date.now().toString(36));
+      sessionStorage.setItem('work-optimizer-client-id',clientId);
+    }
+  }else{
+    clientId='c_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+  }
+}catch{
+  clientId='c_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+}
+
+function sendHeartbeat(action='heartbeat'){
+  if(typeof fetch==='undefined')return;
+  const payload=JSON.stringify({clientId,action});
+  if(action==='close'){
+    if(typeof navigator!=='undefined'&&navigator.sendBeacon&&typeof Blob!=='undefined'){
+      try{
+        navigator.sendBeacon('/api/heartbeat',new Blob([payload],{type:'application/json'}));
+      }catch{}
+    }
+    try{
+      fetch('/api/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},body:payload,keepalive:true}).catch(()=>{});
+    }catch{}
+    return;
+  }
+  return fetch('/api/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},body:payload}).catch(()=>{});
+}
+
+let heartbeatTimer;
+function startHeartbeat(){
+  sendHeartbeat('heartbeat');
+  if(typeof setInterval!=='undefined'){
+    if(typeof clearInterval!=='undefined')clearInterval(heartbeatTimer);
+    heartbeatTimer=setInterval(()=>sendHeartbeat('heartbeat'),5000);
+  }
+}
+if(typeof window!=='undefined'&&window.addEventListener){
+  window.addEventListener('pagehide',()=>sendHeartbeat('close'));
+  window.addEventListener('beforeunload',()=>sendHeartbeat('close'));
+  window.addEventListener('focus',()=>sendHeartbeat('heartbeat'));
+}
+if(typeof document!=='undefined'&&document.addEventListener){
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)sendHeartbeat('heartbeat');});
+}
+
+async function start(){startHeartbeat();try{const legacy=localStorage.getItem('work-optimizer-history-v1');if(legacy){await api('/api/migrate',JSON.parse(legacy));localStorage.removeItem('work-optimizer-history-v1');}}catch{notify('Legacy history could not be migrated; browser copy retained');}try{await load();await migrateHiddenTasks();}catch{setMarkup('#task-list','');schedulePoll();}}
 start();

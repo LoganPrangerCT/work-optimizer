@@ -7,9 +7,11 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-node scripts/launch.mjs
-if errorlevel 1 (
-  echo The app could not start. See the error above.
-  pause
-  exit /b 1
+if "%~1"=="--foreground" (
+  node scripts\launch.mjs --foreground
+) else (
+  wscript //nologo "%~dp0scripts\launch.vbs" 2>nul
+  if errorlevel 1 (
+    node scripts\launch.mjs
+  )
 )
