@@ -479,14 +479,12 @@ export class BlackboardSession implements BBHttp {
   }
 
   /**
-   * Start the SSO flow in the dedicated window: navigate to the classic login
-   * entry, which forwards to the institution's sign-in provider. Only
-   * navigation — the student types every credential themselves.
+   * Open Blackboard's login chooser so the student can select their provider.
    */
   async startLoginFlow(): Promise<void> {
     const page = await this.ensureWorker();
     await page
-      .goto(`${BASE_URL}/webapps/login?new_loc=%2Fultra%2Fcourses`, {
+      .goto(BASE_URL, {
         waitUntil: 'domcontentloaded',
         timeout: 45_000,
       })

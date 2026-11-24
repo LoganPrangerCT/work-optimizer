@@ -6,7 +6,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {tasks as samples} from '../public/model.js';
 import {config} from './config.mjs';
 import {readTaskFiles,taskFileContents,taskFileNames,writeTaskFiles,fileVersions,assertFileVersions} from './task-files.mjs';
-import {sources} from './source-health.mjs';
+import {sources,sourceView} from './source-health.mjs';
 
 export const databasePath=new URL('../data/work.sqlite',import.meta.url);
 const now=()=>new Date().toISOString();
@@ -158,7 +158,11 @@ export function openStore(path=databasePath,{seed=true,publish=writeTaskFiles}={
   function readSnapshot(){
     const mode=workspaceMode();
     const all=rows();
-    return {mode,revision:getMeta('revision')||0,deletedTaskHistory:getMeta('deletedTaskHistory')||[],tasks:visibleTasks(all,mode),legacyHistory:all.filter(t=>t.sample&&t.completedAt),sources:getMeta('sources')||sources.map(uncheckedSource),ranking:getMeta('ranking'),refresh:latestRefresh.get()||null,lastRefreshAt:getMeta('lastRefreshAt'),serverTime:now()};
+    return {mode,revision:getMeta('revision')||0,deletedTaskHistory:getMeta('deletedTaskHistory')||[],tasks:visibleTasks(all,mode),legacyHistory:all.filter(t=>t.sample&&t.completedAt),sources:sources.map(source=>sourceView((getMeta('sources')||[]).find(item=>item.source===source)||uncheckedSource(source),(getMeta('sourceConnections')||{})[source]||null)),ranking:getMeta('ranking'),refresh:latestRefresh.get()||null,lastRefreshAt:getMeta('lastRefreshAt'),serverTime:now()};
+  }
+  function recordSourceConnection(source,status){
+    if(!sources.includes(source)||!['connected','signed_out'].includes(status))fail('Invalid source connection');
+    const connections=getMeta('sourceConnections')||{};connections[source]={status,checkedAt:now()};setMeta('sourceConnections',connections);
   }
   function requestRefresh(){return transaction(()=>db.prepare("SELECT * FROM refreshes WHERE status='pending' LIMIT 1").get()||db.prepare("INSERT INTO refreshes VALUES(?,'pending',?,NULL,NULL) RETURNING *").get(randomUUID(),now()));}
   function addTask(payload){
@@ -269,6 +273,6 @@ export function openStore(path=databasePath,{seed=true,publish=writeTaskFiles}={
 
   function migrateLegacy(entries){if(!Array.isArray(entries)||entries.length>100)fail('Invalid legacy history');return transaction(()=>{for(const h of entries){if(!Number.isInteger(h.id)||!samples.some(t=>t.id===h.id)||!Number.isFinite(Date.parse(h.completedAt))||(h.actual!==null&&(!Number.isInteger(h.actual)||h.actual<1||h.actual>1440)))fail('Invalid legacy completion');db.prepare('UPDATE tasks SET completed_at=COALESCE(completed_at,?),actual=CASE WHEN completed_at IS NULL THEN ? ELSE actual END WHERE id=?').run(h.completedAt,h.actual,'demo:'+h.id);}if(entries.length)bump();return readSnapshot();});}
   syncFiles();
-  return {db,snapshot,requestRefresh,updateTask,addTask,reorderTasks,importBatch,failRefresh,reportRefreshPublicationError,migrateLegacy,close};
+  return {db,snapshot,recordSourceConnection,requestRefresh,updateTask,addTask,reorderTasks,importBatch,failRefresh,reportRefreshPublicationError,migrateLegacy,close};
   }catch(error){if(db)close();else writer?.close();throw error;}
 }

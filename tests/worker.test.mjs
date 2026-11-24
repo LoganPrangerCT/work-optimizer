@@ -254,7 +254,7 @@ test('worker turns source codes into dashboard health and supplies reviewer meta
     await worker.launch(store.requestRefresh());await done;
     const result=store.snapshot();
     assert.equal(result.refresh.status,'complete');
-    assert.equal(result.sources.find(s=>s.source==='Blackboard').status,'reviewed');
+    assert.equal(result.sources.find(s=>s.source==='Blackboard').status,'partial');
     assert.match(result.sources.find(s=>s.source==='Blackboard').note,/undated/);
     assert.equal(result.sources.find(s=>s.source==='Outlook').status,'blocked');
     assert.equal(result.ranking.reviewer,'gpt-6.1-terra · medium');

@@ -190,9 +190,27 @@ test('priority edit preserves task draft and advances its revision',async()=>{
 });
 
 
-test('load failure remains visible with an actionable retry',async()=>{
+test('load failure surfaces as a toast with an actionable retry',async()=>{
  const {elements,run}=frontend(async()=>({ok:false,json:async()=>({error:'active-tasks.json: invalid JSON'})}));
- await assert.rejects(run('load()'),/active-tasks.json/);assert.equal(elements.get('#load-error').hidden,false);assert.match(elements.get('#load-error').textContent,/active-tasks.json.*Reload tasks/);assert.equal(elements.get('#reload-tasks').hidden,false);
+ await assert.rejects(run('load()'),/active-tasks.json/);assert.match(elements.get('#toast').textContent,/active-tasks.json/);assert.equal(elements.get('#reload-tasks').hidden,false);
+});
+
+test('heading shows the last refresh time instead of the date',()=>{
+ const {elements,run}=frontend();
+ run("state={tasks:[],sources:[],mode:'live',lastRefreshAt:'2026-11-23T15:42:00Z'};render();");
+ assert.match(elements.get('#current-date').innerHTML,/^Last updated /);
+ run("state={tasks:[],sources:[],mode:'live'};render();");
+ assert.equal(elements.get('#current-date').innerHTML,'Not updated yet');
+});
+
+test('heading flags a refresh older than six hours as stale',()=>{
+ const {elements,run}=frontend();
+ const recent=new Date(Date.now()-5*60*60*1000).toISOString();
+ const old=new Date(Date.now()-7*60*60*1000).toISOString();
+ run(`state={tasks:[],sources:[],mode:'live',lastRefreshAt:${JSON.stringify(recent)}};render();`);
+ assert.doesNotMatch(elements.get('#current-date').innerHTML,/stale-refresh/);
+ run(`state={tasks:[],sources:[],mode:'live',lastRefreshAt:${JSON.stringify(old)}};render();`);
+ assert.match(elements.get('#current-date').innerHTML,/stale-refresh/);
 });
 
 test('a hidden task stays stored and returns exactly ten calendar days before its due date',()=>{
@@ -234,6 +252,16 @@ test('legacy hidden preference migrates to a server task flag',async()=>{
 test('source indicators expose status without a banner',()=>{
  const {elements,run}=frontend();
  run("state={tasks:[],mode:'live',refresh:{status:'complete'},sources:[{source:'Gmail',status:'reviewed',note:'Connected'},{source:'Blackboard',status:'blocked',note:'Sign in again'},{source:'Outlook',status:'error',note:'Unavailable'}]};render();");
- const sources=elements.get('#sources').innerHTML;assert.match(sources,/status-dot reviewed/);assert.match(sources,/status-dot blocked/);assert.match(sources,/Outlook: Check failed/);assert.match(sources,/Sign in again/);
+ const sources=elements.get('#sources').innerHTML;assert.match(sources,/status-dot reviewed/);assert.match(sources,/status-dot blocked/);assert.match(sources,/Outlook: Review failed/);assert.match(sources,/Sign in again/);
  run("state.refresh={status:'failed',error:'CLI failed'};render();");assert.match(elements.get('#sync-feedback').textContent,/CLI failed/);
 });
+
+
+test('source indicators show verified connection separately from a failed review',()=>{
+ const {elements,run}=frontend();
+ run("$('#status-dialog').showModal=()=>{}");
+ run("state={tasks:[],mode:'live',sources:[{source:'Blackboard',status:'error',indicator:'connected',note:'Worker could not review',connection:{status:'connected',checkedAt:'2026-11-13T00:00:00Z'}},{source:'Outlook',status:'error',indicator:'attention',note:'Worker failed'}]};render();openStatus('Blackboard');");
+ assert.match(elements.get('#sources').innerHTML,/status-dot connected/);assert.match(elements.get('#sources').innerHTML,/status-dot attention/);
+ assert.match(elements.get('#status-content').innerHTML,/Connection: verified/);assert.match(elements.get('#status-content').innerHTML,/Last AI review: Worker could not review/);
+});
+

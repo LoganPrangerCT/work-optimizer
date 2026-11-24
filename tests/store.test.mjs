@@ -107,7 +107,7 @@ test('reorder API persists full task order and rejects stale revisions',async()=
     assert.equal((await post()).status,409);
   }finally{await new Promise(r=>server.close(r));s.close();}
 });
-test('HTTP state, completion, refresh and cross-origin protection',async()=>{const s=openStore(':memory:',{seed:false});s.importBatch(batch(s));let launched=0;const server=createServer(s,{launch:()=>launched++});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;try{assert.equal((await fetch(url+'/api/state')).status,200);const post=(path,data,origin=url)=>fetch(url+path,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin},body:JSON.stringify(data)});assert.equal((await post('/api/refresh',{},'https://foreign.example')).status,403);assert.equal((await post('/api/refresh',{})).status,202);assert.equal(launched,1);assert.equal((await post('/api/tasks/'+taskId('Gmail','thread-1'),{action:'complete',actual:0,baseRevision:s.snapshot().revision})).status,400);const result=await(await post('/api/tasks/'+taskId('Gmail','thread-1'),{action:'complete',actual:120,baseRevision:s.snapshot().revision})).json();assert.equal(result.tasks[0].actual,120);assert.equal((await fetch(url+'/data/work.sqlite')).status,404);}finally{await new Promise(r=>server.close(r));s.close();}});
+test('HTTP state, completion, refresh and cross-origin protection',async()=>{const s=openStore(':memory:',{seed:false});s.importBatch(batch(s));let launched=0;const server=createServer(s,{launch:()=>launched++},{checkSession:async()=>true});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;try{assert.equal((await fetch(url+'/api/state')).status,200);const post=(path,data,origin=url)=>fetch(url+path,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin},body:JSON.stringify(data)});assert.equal((await post('/api/refresh',{},'https://foreign.example')).status,403);assert.equal((await post('/api/refresh',{})).status,202);await new Promise(r=>setImmediate(r));assert.equal(launched,1);assert.equal((await post('/api/tasks/'+taskId('Gmail','thread-1'),{action:'complete',actual:0,baseRevision:s.snapshot().revision})).status,400);const result=await(await post('/api/tasks/'+taskId('Gmail','thread-1'),{action:'complete',actual:120,baseRevision:s.snapshot().revision})).json();assert.equal(result.tasks[0].actual,120);assert.equal((await fetch(url+'/data/work.sqlite')).status,404);}finally{await new Promise(r=>server.close(r));s.close();}});
 
 test('manual creation validates, rejects stale edits and is idempotent after a lost response',()=>{
  const store=openStore(':memory:');
@@ -136,7 +136,7 @@ test('deleted source tasks stay removed after refresh and stale deletion is reje
 
 test('Blackboard sign-in opens once and prevents refresh until it finishes',async()=>{
  const s=openStore(':memory:',{seed:false});let launches=0;const child=new EventEmitter();
- const server=createServer(s,{running:false,launch(){launches++;}},{spawnLogin(){return child;}});
+ const server=createServer(s,{running:false,launch(){launches++;}},{spawnLogin(){return child;},checkSession:async()=>true});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
  const post=path=>fetch(url+path,{method:'POST',headers:{'Content-Type':'application/json',Origin:url},body:'{}'});
  try{
@@ -145,7 +145,56 @@ test('Blackboard sign-in opens once and prevents refresh until it finishes',asyn
   assert.equal((await post('/api/refresh')).status,409);assert.equal(launches,0);
   assert.equal((await(await fetch(url+'/api/state')).json()).blackboardLogin,'pending');
   child.emit('close',0);assert.equal((await(await fetch(url+'/api/state')).json()).blackboardLogin,'complete');
-  assert.equal((await post('/api/refresh')).status,202);assert.equal(launches,1);
+  assert.equal((await post('/api/refresh')).status,202);await new Promise(r=>setImmediate(r));assert.equal(launches,1);
+ }finally{await new Promise(r=>server.close(r));s.close();}
+});
+
+
+test('refresh waits for Blackboard sign-in before launching AI',async()=>{
+ const s=openStore(':memory:',{seed:false}),child=new EventEmitter();let launches=0;
+ const server=createServer(s,{running:false,launch(){launches++;}},{spawnLogin(){return child;},checkSession:async()=>false});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
+ const post=()=>fetch(url+'/api/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+ try{
+  assert.equal((await post()).status,202);await new Promise(r=>setImmediate(r));
+  assert.equal(launches,0);assert.equal((await(await fetch(url+'/api/state')).json()).blackboardLogin,'pending');
+  assert.equal((await post()).status,409);child.emit('close',0);assert.equal(launches,1);
+ }finally{await new Promise(r=>server.close(r));s.close();}
+});
+
+test('failed Blackboard check never launches AI',async()=>{
+ const s=openStore(':memory:',{seed:false});let launches=0;
+ const server=createServer(s,{running:false,launch(){launches++;}},{checkSession:async()=>{throw Error('offline');}});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
+ try{
+  await fetch(url+'/api/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});await new Promise(r=>setImmediate(r));
+  const state=await(await fetch(url+'/api/state')).json();assert.equal(launches,0);assert.equal(state.blackboardLogin,'failed');assert.match(state.blackboardLoginError,/Could not check/);
+ }finally{await new Promise(r=>server.close(r));s.close();}
+});
+
+
+test('successful Blackboard sign-in updates connection without erasing review history',async()=>{
+ const s=openStore(':memory:',{seed:false}),child=new EventEmitter();
+ s.importBatch({...batch(s),sources:[{source:'Blackboard',status:'blocked',checkedAt:'2026-01-01T00:00:00Z',note:'Old login needed'}]});
+ const server=createServer(s,null,{spawnLogin(){return child;}});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
+ try{
+  await fetch(url+'/api/blackboard-login',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});child.emit('close',0);
+  const source=(await(await fetch(url+'/api/state')).json()).sources.find(x=>x.source==='Blackboard');
+  assert.equal(source.indicator,'connected');assert.equal(source.connection.status,'connected');assert.equal(source.note,'Old login needed');
+ }finally{await new Promise(r=>server.close(r));s.close();}
+});
+
+
+test('Blackboard sign-in reports a missing integration instead of failing silently',async()=>{
+ const s=openStore(':memory:',{seed:false}),child=new EventEmitter();child.stderr=new EventEmitter();
+ const server=createServer(s,null,{spawnLogin(){return child;}});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
+ try{
+  await fetch(url+'/api/blackboard-login',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  child.stderr.emit('data',Buffer.from('Error: Cannot find module'));child.emit('close',1);
+  const state=await(await fetch(url+'/api/state')).json();
+  assert.equal(state.blackboardLogin,'failed');assert.match(state.blackboardLoginError,/setup:mcp/);
  }finally{await new Promise(r=>server.close(r));s.close();}
 });
 

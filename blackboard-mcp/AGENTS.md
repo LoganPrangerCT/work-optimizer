@@ -28,3 +28,7 @@ These came from Anthropic's Opus 5.5 guidance (Sep 2026). They hold for any agen
 
 - `dist/` is generated and ignored. Run `npm ci --ignore-scripts` and `npm run build`
   before running the bundled MCP server. `npm test` also checks that source compilation succeeds.
+
+## Default output location
+
+- Put new standalone files and deliverables in the root Downloads folder (`%USERPROFILE%\Downloads`) by default, rather than inside the current project or a nested folder. Use another location only when the request specifies it or the file belongs in the repository.

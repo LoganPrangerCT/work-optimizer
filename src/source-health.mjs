@@ -17,8 +17,16 @@ export const sourceCodeMessages = {
 export function sourceReport(source, codes, checkedAt = new Date().toISOString()) {
   if (!Array.isArray(codes) || !codes.length || codes.some(code => !Object.hasOwn(sourceCodeMessages, code))) throw new Error('Invalid source health codes');
   const unique = [...new Set(codes)];
-  const status = unique.some(code => ['login_required','profile_busy','unavailable'].includes(code)) ? 'blocked'
-    : unique.some(code => ['error','not_checked','tool_unavailable'].includes(code)) ? 'error'
-    : unique.includes('reviewed') ? 'reviewed' : 'error';
+  const status = unique.includes('login_required') ? 'blocked'
+    : unique.some(code => ['error','not_checked','tool_unavailable','profile_busy','unavailable'].includes(code)) ? 'error'
+    : unique.includes('reviewed') ? (unique.length>1?'partial':'reviewed') : 'error';
   return {source, status, checkedAt, note: unique.filter(code => code !== 'reviewed' || unique.length === 1).map(code => sourceCodeMessages[code]).join(' ')};
+}
+
+// Connection and review are separate observations; a working login does not prove a complete review.
+export function sourceView(review, connection=null) {
+  const newerBlock=review.status==='blocked'&&(!connection||Date.parse(review.checkedAt)>Date.parse(connection.checkedAt));
+  const newerSignOut=connection?.status==='signed_out'&&(!review.checkedAt||Date.parse(connection.checkedAt)>=Date.parse(review.checkedAt));
+  const indicator=newerSignOut?'blocked':connection?.status==='connected'&&!newerBlock?'connected':review.status==='blocked'?'blocked':review.status==='reviewed'?'reviewed':review.status==='not_checked'?'not_checked':'attention';
+  return {...review,connection,indicator};
 }
